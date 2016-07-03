@@ -1,0 +1,15 @@
+# Compiled python modules.
+*.pyc
+
+# Build directory.
+/build/
+
+# Setuptools distribution directory.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools
+/*.egg-info
+/.eggs/
+
+# Data directory created for persistent storage of data
+/data/

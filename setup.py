@@ -14,7 +14,8 @@ setup(
     author_email='me@darkowlzz.space',
     license='MIT',
     packages=['ctl'],
-    install_requires=['click', 'boto3', 'flake8'],
+    install_requires=['click', 'boto3'],
+    tests_require=['flake8', 'moto'],
     entry_points='''
         [console_scripts]
         ec2-ctl=ctl.ec2:ec2

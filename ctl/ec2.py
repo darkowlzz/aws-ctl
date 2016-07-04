@@ -100,6 +100,27 @@ def instance_state(region, id):
               prompt='AWS Region', help='AWS region.')
 @click.option('--id', default=LAST_INSTANCE,
               prompt='Instance ID', help='The instance\'s id identifier.')
+def start_instance(region, id):
+    """Start EC2 instance"""
+    client = boto3.client('ec2', region_name=region)
+    if id == LAST_INSTANCE:
+        li = last_instance()
+        id = li['InstanceId']
+
+    resp = client.start_instances(
+        InstanceIds=[id]
+    )
+    click.echo(
+        'State: ' +
+        resp['StartingInstances'][0]['CurrentState']['Name']
+    )
+
+
+@ec2.command()
+@click.option('--region', default='us-east-1',
+              prompt='AWS Region', help='AWS region.')
+@click.option('--id', default=LAST_INSTANCE,
+              prompt='Instance ID', help='The instance\'s id identifier.')
 def terminate_instance(region, id):
     """Terminate EC2 instance"""
     client = boto3.client('ec2', region_name=region)
@@ -113,4 +134,25 @@ def terminate_instance(region, id):
     click.echo(
         'State: ' +
         resp['TerminatingInstances'][0]['CurrentState']['Name']
+    )
+
+
+@ec2.command()
+@click.option('--region', default='us-east-1',
+              prompt='AWS Region', help='AWS region.')
+@click.option('--id', default=LAST_INSTANCE,
+              prompt='Instance ID', help='The instance\'s id identifier.')
+def stop_instance(region, id):
+    """Stop EC2 instance"""
+    client = boto3.client('ec2', region_name=region)
+    if id == LAST_INSTANCE:
+        li = last_instance()
+        id = li['InstanceId']
+
+    resp = client.stop_instances(
+        InstanceIds=[id]
+    )
+    click.echo(
+        'State: ' +
+        resp['StoppingInstances'][0]['CurrentState']['Name']
     )

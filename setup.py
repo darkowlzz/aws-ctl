@@ -15,7 +15,8 @@ setup(
     license='MIT',
     packages=['ctl'],
     install_requires=['click', 'boto3'],
-    tests_require=['flake8', 'moto'],
+    test_suite='nose.collector',
+    tests_require=['flake8', 'moto', 'nose'],
     entry_points='''
         [console_scripts]
         ec2-ctl=ctl.ec2:ec2

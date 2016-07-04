@@ -19,3 +19,8 @@ Lint
 ----
 
 ``python setup.py flake8``
+
+Tests
+-----
+
+``python setup.py test``

@@ -33,6 +33,19 @@ def ec2():
     pass
 
 
+# Create EC2 instances and add the response to ec2 recent
+def create_instances(region, image, mincount, maxcount, keyname, instancetype):
+    client = boto3.client('ec2', region_name=region)
+    response = client.run_instances(
+        ImageId=image,
+        MinCount=mincount,
+        MaxCount=maxcount,
+        KeyName=keyname,
+        InstanceType=instancetype
+    )
+    add_to_recent(response)
+
+
 @ec2.command()
 @click.option('--region', default='us-east-1',
               prompt='AWS Region', help='AWS region.')
@@ -48,15 +61,21 @@ def ec2():
               prompt='Instance Type', help='AWS Instance Type')
 def run_instances(region, image, mincount, maxcount, keyname, instancetype):
     """Run EC2 instances"""
-    client = boto3.client('ec2', region_name=region)
-    response = client.run_instances(
-        ImageId=image,
-        MinCount=mincount,
-        MaxCount=maxcount,
-        KeyName=keyname,
-        InstanceType=instancetype
-    )
-    add_to_recent(response)
+    create_instances(region, image, mincount, maxcount, keyname, instancetype)
+
+
+@ec2.command()
+@click.option('--region', default='us-east-1',
+              prompt='AWS Region', help='AWS region.')
+@click.option('--image', default='ami-fce3c696',
+              prompt='Image ID', help='ID of the AMI.')
+@click.option('--keyname', prompt='KeyName',
+              help='Name of keypair.')
+@click.option('--instancetype', default='t2.micro',
+              prompt='Instance Type', help='AWS Instance Type')
+def run_instance(region, image, keyname, instancetype):
+    """Run EC2 instance"""
+    create_instances(region, image, 1, 1, keyname, instancetype)
 
 
 @ec2.command()

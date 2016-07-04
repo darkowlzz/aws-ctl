@@ -23,8 +23,41 @@ def add_to_recent(obj):
 
 # Return the last available instance
 def last_instance():
-    with open(ctrl_data_file_path, 'rb') as f:
-        return pickle.load(f)['Instances'][0]
+    try:
+        with open(ctrl_data_file_path, 'rb') as f:
+            return pickle.load(f)['Instances'][0]
+    except EOFError:
+        return None
+
+
+# Get instance state details
+def get_instance_state(region, id):
+    ec2 = boto3.resource('ec2', region_name=region)
+    if id == LAST_INSTANCE:
+        li = last_instance()
+        if li:
+            instance = ec2.Instance(li['InstanceId'])
+        else:
+            return None
+    else:
+        instance = ec2.Instance(id)
+    return {
+        'id': instance.instance_id,
+        'state': instance.state['Name']
+    }
+
+
+# Terminate an instance
+def kill_instance(region, id):
+    client = boto3.client('ec2', region_name=region)
+    if id == LAST_INSTANCE:
+        li = last_instance()
+        id = li['InstanceId']
+
+    resp = client.terminate_instances(
+        InstanceIds=[id]
+    )
+    return {'state': resp['TerminatingInstances'][0]['CurrentState']['Name']}
 
 
 @click.group()
@@ -85,14 +118,12 @@ def run_instance(region, image, keyname, instancetype):
               prompt='Instance ID', help='The instance\'s id identifier.')
 def instance_state(region, id):
     """Get EC2 instance state"""
-    ec2 = boto3.resource('ec2', region_name=region)
-    if id == LAST_INSTANCE:
-        li = last_instance()
-        instance = ec2.Instance(li['InstanceId'])
+    response = get_instance_state(region, id)
+    if response:
+        click.echo('Instance ID: ' + response['id'])
+        click.echo('State: ' + response['state'])
     else:
-        instance = ec2.Instance(id)
-    click.echo('Instance ID: ' + instance.instance_id)
-    click.echo('State: ' + instance.state['Name'])
+        click.echo('Instance not found')
 
 
 @ec2.command()
@@ -123,18 +154,8 @@ def start_instance(region, id):
               prompt='Instance ID', help='The instance\'s id identifier.')
 def terminate_instance(region, id):
     """Terminate EC2 instance"""
-    client = boto3.client('ec2', region_name=region)
-    if id == LAST_INSTANCE:
-        li = last_instance()
-        id = li['InstanceId']
-
-    resp = client.terminate_instances(
-        InstanceIds=[id]
-    )
-    click.echo(
-        'State: ' +
-        resp['TerminatingInstances'][0]['CurrentState']['Name']
-    )
+    response = kill_instance(region, id)
+    click.echo('State: ' + response['state'])
 
 
 @ec2.command()

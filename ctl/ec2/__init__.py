@@ -2,12 +2,13 @@ import click
 import pickle
 import boto3
 import os
+import ctl
 
 DATA_DIR = 'data'
 DATA_FILE = 'ec2.dat'
 LAST_INSTANCE = 'use last available instance'
 
-ctrl_home_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+ctrl_home_dir = os.path.dirname(os.path.dirname(os.path.realpath(ctl.__file__)))
 ctrl_data_dir_path = os.path.join(ctrl_home_dir, DATA_DIR)
 ctrl_data_file_path = os.path.join(ctrl_data_dir_path, DATA_FILE)
 
@@ -30,6 +31,19 @@ def last_instance():
         return None
 
 
+# Create EC2 instances and add the response to ec2 recent
+def create_instances(region, image, mincount, maxcount, keyname, instancetype):
+    client = boto3.client('ec2', region_name=region)
+    response = client.run_instances(
+        ImageId=image,
+        MinCount=mincount,
+        MaxCount=maxcount,
+        KeyName=keyname,
+        InstanceType=instancetype
+    )
+    add_to_recent(response)
+
+
 # Get instance state details
 def get_instance_state(region, id):
     ec2 = boto3.resource('ec2', region_name=region)
@@ -45,6 +59,32 @@ def get_instance_state(region, id):
         'id': instance.instance_id,
         'state': instance.state['Name']
     }
+
+
+# Start an instance from Stop state
+def instance_turn_on(region, id):
+    client = boto3.client('ec2', region_name=region)
+    if id == LAST_INSTANCE:
+        li = last_instance()
+        id = li['InstanceId']
+
+    resp = client.start_instances(
+        InstanceIds=[id]
+    )
+    return {'state': resp['StartingInstances'][0]['CurrentState']['Name']}
+
+
+# Stop an instance from Running state
+def instance_turn_off(region, id):
+    client = boto3.client('ec2', region_name=region)
+    if id == LAST_INSTANCE:
+        li = last_instance()
+        id = li['InstanceId']
+
+    resp = client.stop_instances(
+        InstanceIds=[id]
+    )
+    return {'state': resp['StoppingInstances'][0]['CurrentState']['Name']}
 
 
 # Terminate an instance
@@ -64,19 +104,6 @@ def kill_instance(region, id):
 def ec2():
     """EC2 controller"""
     pass
-
-
-# Create EC2 instances and add the response to ec2 recent
-def create_instances(region, image, mincount, maxcount, keyname, instancetype):
-    client = boto3.client('ec2', region_name=region)
-    response = client.run_instances(
-        ImageId=image,
-        MinCount=mincount,
-        MaxCount=maxcount,
-        KeyName=keyname,
-        InstanceType=instancetype
-    )
-    add_to_recent(response)
 
 
 @ec2.command()
@@ -133,18 +160,8 @@ def instance_state(region, id):
               prompt='Instance ID', help='The instance\'s id identifier.')
 def start_instance(region, id):
     """Start EC2 instance"""
-    client = boto3.client('ec2', region_name=region)
-    if id == LAST_INSTANCE:
-        li = last_instance()
-        id = li['InstanceId']
-
-    resp = client.start_instances(
-        InstanceIds=[id]
-    )
-    click.echo(
-        'State: ' +
-        resp['StartingInstances'][0]['CurrentState']['Name']
-    )
+    response = instance_turn_on(region, id)
+    click.echo('State: ' + response['state'])
 
 
 @ec2.command()
@@ -165,15 +182,5 @@ def terminate_instance(region, id):
               prompt='Instance ID', help='The instance\'s id identifier.')
 def stop_instance(region, id):
     """Stop EC2 instance"""
-    client = boto3.client('ec2', region_name=region)
-    if id == LAST_INSTANCE:
-        li = last_instance()
-        id = li['InstanceId']
-
-    resp = client.stop_instances(
-        InstanceIds=[id]
-    )
-    click.echo(
-        'State: ' +
-        resp['StoppingInstances'][0]['CurrentState']['Name']
-    )
+    response = instance_turn_off(region, id)
+    click.echo('State: ' + response['state'])

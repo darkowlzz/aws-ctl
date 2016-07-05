@@ -1,7 +1,7 @@
 from unittest import TestCase
 import boto3
 from moto import mock_ec2
-from ctl.ec2 import create_instances
+from ctl.ec2.utils import create_instances
 
 
 class TestEC2(TestCase):

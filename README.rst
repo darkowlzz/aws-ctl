@@ -1,5 +1,8 @@
 aws-ctl
---------
+=======
+
+.. image:: https://travis-ci.org/darkowlzz/aws-ctl.svg?branch=master
+    :target: https://travis-ci.org/darkowlzz/aws-ctl
 
 AWS Controller.
 

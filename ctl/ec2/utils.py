@@ -18,15 +18,15 @@ if not os.path.exists(ctrl_data_dir_path):
 
 
 # Add an object to recent persistent storage
-def add_to_recent(obj):
-    with open(ctrl_data_file_path, 'wb') as f:
+def add_to_recent(obj, data_path=ctrl_data_file_path):
+    with open(data_path, 'wb') as f:
         pickle.dump(obj, f)
 
 
 # Return the last available instance
-def last_instance():
+def last_instance(data_path=ctrl_data_file_path):
     try:
-        with open(ctrl_data_file_path, 'rb') as f:
+        with open(data_path, 'rb') as f:
             return pickle.load(f)['Instances'][0]
     except EOFError:
         return None

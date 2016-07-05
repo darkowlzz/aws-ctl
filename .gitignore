@@ -13,3 +13,5 @@
 
 # Data directory created for persistent storage of data
 /data/
+
+*-test.dat

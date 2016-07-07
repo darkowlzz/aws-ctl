@@ -33,7 +33,8 @@ def last_instance(data_path=ctrl_data_file_path):
 
 
 # Create EC2 instances and add the response to ec2 recent
-def create_instances(region, image, mincount, maxcount, keyname, instancetype):
+def create_instances(region, image, mincount, maxcount, keyname,
+                     instancetype, log_path=ctrl_data_file_path):
     client = boto3.client('ec2', region_name=region)
     response = client.run_instances(
         ImageId=image,
@@ -42,7 +43,7 @@ def create_instances(region, image, mincount, maxcount, keyname, instancetype):
         KeyName=keyname,
         InstanceType=instancetype
     )
-    add_to_recent(response)
+    add_to_recent(response, log_path)
 
 
 # Get instance state details

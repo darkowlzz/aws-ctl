@@ -14,9 +14,9 @@ setup(
     author_email='me@darkowlzz.space',
     license='MIT',
     packages=['ctl'],
-    install_requires=['click', 'boto3'],
+    install_requires=['click', 'boto3', 'flake8'],
     test_suite='nose.collector',
-    tests_require=['flake8', 'moto', 'nose'],
+    tests_require=['moto', 'nose'],
     entry_points='''
         [console_scripts]
         ec2-ctl=ctl.ec2:ec2

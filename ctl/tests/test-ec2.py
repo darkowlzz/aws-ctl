@@ -4,7 +4,7 @@ import os
 import pickle
 from moto import mock_ec2
 from ctl.ec2.utils import create_instances, add_to_recent, last_instance, \
-    instance_turn_on, instance_turn_off, get_instance_state
+    instance_turn_on, instance_turn_off, get_instance_state, kill_instance
 
 
 # Used in testing recent data storage
@@ -89,3 +89,13 @@ class TestEC2(TestCase):
         instance_turn_off('us-east-1', li['InstanceId'])
         state = get_instance_state('us-east-1', li['InstanceId'])
         self.assertEqual(state['state'], 'stopped')
+
+    @mock_ec2
+    def test_kill_instance(self):
+        create_instances('us-east-1', 'ami-fce3c696', 1, 1, 'foo',
+                         't2.micro', data_file_path)
+        li = last_instance(data_file_path)
+        state = get_instance_state('us-east-1', li['InstanceId'])
+        self.assertEqual(state['state'], 'running')
+        state = kill_instance('us-east-1', li['InstanceId'])
+        self.assertEqual(state['state'], 'shutting-down')
